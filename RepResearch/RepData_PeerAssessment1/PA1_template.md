@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 Below we analyze the data for Activity monitoring.
 The data is obtained from: https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip
@@ -12,7 +7,8 @@ The data is obtained from: https://d396qusza40orc.cloudfront.net/repdata%2Fdata%
 
 Load data and transform data:
 
-```{r,, echo=TRUE}
+
+```r
 data_orig <- read.csv("activity.csv")         # loading
 data <- data_orig[complete.cases(data_orig),] # removing rows with empty entry 
 ```
@@ -21,7 +17,8 @@ data <- data_orig[complete.cases(data_orig),] # removing rows with empty entry
 
 We first look into the simple statistics of the number of steps taken per day:
 
-```{r, echo=TRUE}
+
+```r
 dates <-unique(data$date)
 total_steps <- c()                            # total number of steps
 for (date in dates){
@@ -32,17 +29,33 @@ for (date in dates){
 
 # Below is plot a histogram of total steps
 hist(total_steps, xlab = "Steps", main = "Total number of steps")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+
+```r
 # The mean and median
 mean(total_steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(total_steps)
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 
 Secondly, we look into the average daily activity pattern:
 
-```{r, echo=TRUE}
+
+```r
 intervals <- unique(data$interval)
 mean_steps <- c()                  # average steps in an interval
 for (interval in intervals){
@@ -52,20 +65,34 @@ for (interval in intervals){
 }
 
 plot(intervals,mean_steps, type = "l", xlab = "5-min interval", ylab = "Steps", main = "Average steps over sample dates")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
+```r
 # The maximum steps taken during a day on average is found at interval:
 data$interval[which(mean_steps == max(mean_steps))]
+```
 
-````
+```
+## [1] 835
+```
 
 ## Imputing missing values
 
 With the data obtained from the previous step, we now fill in the missing value (i.e. NA) in the original data with the mean_step value for the corresponding 5-min interval, and re-evaluate the statistics in step 1:
 
-```{r, echo=TRUE}
+
+```r
 # The total number of lines with missing values are:
 nrow(data_orig) - nrow(data)
+```
 
+```
+## [1] 2304
+```
+
+```r
 # Now fill in the missing value (i.e. NA) in the original data with the mean_step value for the corresponding 5-min interval. We call this new data set data_mod
 data_mod <- data_orig
 for (interval in intervals){
@@ -83,8 +110,21 @@ for (date in dates){
 
 # The mean and median of the data with fixed original data
 mean(total_steps)
-median(total_steps)
+```
 
+```
+## [1] 10766.19
+```
+
+```r
+median(total_steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 # We note that the mean is not changed, but the median is shifted towards the mean
 ```
 
@@ -94,7 +134,8 @@ We note that from the previous step, the mean is not changed, but the median is 
 
 Finally, we investigate whether the activity level can be different for weekends vs weekdays from this data set:
 
-```{r echo=TRUE}
+
+```r
 # Make a new data set for which the days are classified as weekday or weekend
 data_comp <- transform(data, date = as.character(date))
 dates <-unique(data_comp$date)
@@ -109,7 +150,9 @@ for (date in dates){
 }
 
 # Now average the activity levels for weekdays and weekends separately:
-```{r, echo=TRUE}
+```
+
+```r
 intervals <- unique(data_comp$interval)
 mean_steps_wkday <- c()
 mean_steps_wkend <- c()
@@ -126,7 +169,8 @@ for (interval in intervals){
 par(mfrow = c(2, 1))
 plot(intervals,mean_steps_wkday, type = "l", xlab = "5-min interval", ylab = "Steps", main = "Average steps over weekdays")
 plot(intervals,mean_steps_wkend, type = "l", xlab = "5-min interval", ylab = "Steps", main = "Average steps over weekends")
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
 
 We see that the weekend activity levels are indeed different from those from the weekends, with fewer steps taken on average during the day, and the peak intervals flattened out.
