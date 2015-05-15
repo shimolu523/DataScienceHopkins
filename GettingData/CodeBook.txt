@@ -1,0 +1,14 @@
+Code book for R file run_analysis.R
+
+url_dataSource: url address for data source
+fileNames: file names of all unzipped file downloaded from url_url_dataSource
+data_test: testing data set, containing subject, activity name, and measurement in column 1, 2, and 3-563, respectively.
+data_train: training data, same structure as testing data set
+data: merged data set from data_test and data_train
+subs: vector containing all distinct subject numbers 
+acts: vector containing all distinct activity numbers
+mns: matrix containing the means of each 561 measurements in data; row, subject and activity label; column, measurement mean
+stdev: matrix, same structure as mns, but with entries as standard deviation instead of mean
+actName: activity names
+measName: name of the 561 measurements
+data_tidy: data frame of mns, with rows and columns labelled with actName and measName 
