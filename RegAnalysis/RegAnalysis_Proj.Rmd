@@ -1,0 +1,46 @@
+---
+title: "RegAnalysis_Proj.Rmd"
+output: pdf_document
+---
+
+Below we analyze the data for mtcars in R. The goal is to address the following quesion: "Is an automatic or manual transmission better for MPG", and "quantify the MPG difference between automatic and manual transmissions".
+
+## Executive summary
+We conducted regression analysis for data mtcars, in order to investigate the significance of transmission type on the mpg. Although an exploratory analysis shows a mean of 17.15 and 24.39 for cars with auto and manual transmission, respectively, a full model including all significant predictors show that the difference in mpg is not significant (1.8, t test not passed with t value 0.2).
+
+## Exploratory analysis
+We first investigate the difference in MPG for auto vs manual transmission without including the other variables. The result, analysis below shows different mpg means of 17.15 and 24.39 for cars with auto and manual transmission, respectively (plot attached to end of document). 
+
+```{r, echo = TRUE}
+summary(mtcars[mtcars$am == 0,]$mpg)
+summary(mtcars[mtcars$am == 1,]$mpg)
+#boxplot(mpg ~ am, data = mtcars, xlab = "Transmission", ylab = "MPG", main="MPG vs Trans Type")
+```
+
+## Multiple regression analysis
+To further investigate whether the above difference is resulted from other variables, we give a multiple regression to account for all variables. Based also on the Akaike's information criterion, the final model selected is a regression on the following variables (anova output hidden due to lengthiness): cyl, am, hp and wt. The result of the final model fitting is shown (plot attached in the appendix).
+
+```{r, echo = TRUE}
+fit1<-glm(mpg~as.factor(cyl)+vs+am+as.factor(gear)+as.factor(carb)+disp+hp+drat+wt +qsec,data=mtcars)
+library(MASS)
+#step <- stepAIC(fit1, direction="both")
+#step$anova (anova result hidden due to lengthiness)
+fit2<-glm(mpg ~ as.factor(cyl) + as.factor(am) + hp + wt - 1, data=mtcars)
+#par(mfrow=c(2, 2)) 
+#plot(fit2)
+summary(fit2)
+```
+
+As our model reveals, there is a difference of 1.8 mpg accounted by the transmission type. However, since the standard error is large, which does not pass the t test (t value = 0.2), the dependence cannot be interpreted as significant.
+
+## Appendix:
+Plot of mpg statistics for auto and manual transmission cars. On the x-axis, 0 and 1 represents manual and auto transmission, respectively.
+
+```{r, fig.width = 6, fig.height = 4, echo=TRUE}
+boxplot(mpg ~ am, data = mtcars, xlab = "Transmission", ylab = "MPG", main="MPG vs Trans Type")
+```
+Plot of selected model fitting:
+
+```{r, fig.width = 6, fig.height = 4, echo=TRUE}
+plot(fit2)
+```
