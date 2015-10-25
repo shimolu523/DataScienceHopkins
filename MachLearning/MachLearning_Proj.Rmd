@@ -1,0 +1,58 @@
+---
+title: "Human activity recognation"
+output: html_document
+---
+
+Below we use random forrest machine learning algorithm to classify human acitivities based on accelerometer measurements on various parts of bodies for 6 participants.
+
+## Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset). 
+
+## Executive summary
+
+
+
+## Getting and cleaning data
+Training data: 
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+The test data: 
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+Downloading data:
+
+```{r, echo = TRUE}
+#download.file(url = "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", destfile = "har-training.csv")
+#download.file(url = "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", destfile = "har-testing.csv")
+har_train <- read.csv('har-training.csv')
+har_test <- read.csv('har-testing.csv')
+```
+
+Cleaning data (removing variables with all zero entries):
+
+```{r, echo = TRUE}
+har_train<-har_train[,colSums(is.na(har_train)) == 0]
+har_test <-har_test[,colSums(is.na(har_test)) == 0]
+```
+
+## Preprocessing
+
+Loading all libraies needed
+```{r, echo =TRUE}
+library(caret)
+library(ggplot2)
+library(lattice)
+library(kernlab)
+library(randomForest)
+```
+
+Partitioning training set into training and validation set
+
+```{r, echo = TRUE}
+index_train <- createDataPartition(har_train$classe,p=.75,list=FALSE)
+data_train = har_train[index_train,]
+data_val = har_train[-index_train,]
+```
+
+Preprocessing the nurmerical variables

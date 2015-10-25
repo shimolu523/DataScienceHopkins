@@ -1,5 +1,5 @@
 ---
-title: "RegAnalysis_Proj.Rmd"
+title: "Analysis of automobile mpg dependence of transmission type, auto vs manual"
 output: pdf_document
 ---
 
