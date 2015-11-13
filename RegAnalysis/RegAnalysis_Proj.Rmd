@@ -1,6 +1,6 @@
 ---
 title: "Analysis of automobile mpg dependence of transmission type, auto vs manual"
-output: pdf_document
+output: html_document
 ---
 
 Below we analyze the data for mtcars in R. The goal is to address the following quesion: "Is an automatic or manual transmission better for MPG", and "quantify the MPG difference between automatic and manual transmissions".

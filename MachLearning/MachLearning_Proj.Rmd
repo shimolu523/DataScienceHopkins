@@ -11,6 +11,8 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 
 ## Executive summary
 
+Based on the data provided from accelerometer measurements, we performed machine training to classify the types of motion. The training data is split into a training and validation set (75% and 25% of the training data, respectively). For all the 160 variables given in the data set, we performed preprocessing by keeping only the accelerometer measurements, and removing those with 80% data missing. A principle component analysis is then used to remove excessive measurements that are highly correlated the others. 25 principle components remains after preproocessing, and With the data trained with a random forest model, 100% accuracy is achieved on the training set. Using this same model a 2.5% out of sample error is found in the validation set. Finally, this model predicts the outcome from the testing set to be "B A B A A E D B A A B C B A E E A B B B", on the 20 sets of measurements.
+
 
 
 ## Getting and cleaning data
@@ -20,7 +22,7 @@ https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
 The test data: 
 https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 
-Downloading data:
+### Downloading data:
 
 ```{r, echo = TRUE}
 #download.file(url = "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", destfile = "har-training.csv")
@@ -29,11 +31,24 @@ har_train <- read.csv('har-training.csv')
 har_test <- read.csv('har-testing.csv')
 ```
 
-Cleaning data (removing variables with all zero entries):
+### Initial examination of data:
+```{r, echo = TRUE}
+dim(har_train)
+names(har_train)
+```
+The goal is to build a model based on the 5 sensor readings attached to the patient to predict the variable classe. We therefore perform the following to pre-clean the data:
+* Use only the 5 sensor readings as predictors, which are labeled "belt", "arm", "forearm", and "dumbbell", respectively.
+* Of all the readings, we's also like to remove variables which have more than 80% empty/NA entries.
+
+### Cleaning data (removing variables with all zero entries):
 
 ```{r, echo = TRUE}
-har_train<-har_train[,colSums(is.na(har_train)) == 0]
-har_test <-har_test[,colSums(is.na(har_test)) == 0]
+sensorInd <- grepl("classe|belt|[^(fore)]arm|dumbbell|forearm", names(har_train))
+rmColInd <- colSums(is.na(har_train) | har_train == "")/dim(har_train)[1] > 0.8
+har_train <- har_train[,sensorInd & !rmColInd]
+har_test <-har_test[,sensorInd & !rmColInd]
+dim(har_train)
+names(har_train)
 ```
 
 ## Preprocessing
@@ -41,18 +56,68 @@ har_test <-har_test[,colSums(is.na(har_test)) == 0]
 Loading all libraies needed
 ```{r, echo =TRUE}
 library(caret)
-library(ggplot2)
-library(lattice)
-library(kernlab)
-library(randomForest)
+#library(ggplot2)
+#library(lattice)
+#library(kernlab)
+#library(randomForest)
 ```
 
-Partitioning training set into training and validation set
+Partitioning training data set into training (data_train) and validation (data_val) set.
 
 ```{r, echo = TRUE}
+set.seed(6639)
 index_train <- createDataPartition(har_train$classe,p=.75,list=FALSE)
-data_train = har_train[index_train,]
-data_val = har_train[-index_train,]
+data_train <- har_train[index_train,]
+data_val <- har_train[-index_train,]
 ```
 
-Preprocessing the nurmerical variables
+Preprocessing using the PCA method:
+```{r, echo = TRUE}
+preProc <- preProcess(data_train[,names(data_train)!="classe"], method = "pca")
+predictor_trainPC <- predict(preProc, data_train[,names(data_train)!="classe"])
+data_trainPC <- data.frame(classe = data_train$classe,predictor_trainPC)
+# examining the number of principle components used
+dim(data_trainPC)
+```
+
+## Training
+
+Now we're ready to perform training with random forest methods
+```{r, echo = TRUE}
+# training with preprocessed principle components
+modelTrain <- train(classe ~ ., method = "rf", data = data_trainPC)
+confusionMatrix(data_train$classe, predict(modelTrain, data_trainPC))
+```
+As revealed from the output, the 25 predictors as selected are sufficient to determine the training set with 100% accuracy.
+
+## Validation
+
+Now try the model on the validation set:
+```{r, echo = TRUE}
+predictor_valPC <- predict(preProc, data_val[,names(data_val)!="classe"])
+data_valPC <- data.frame(classe = data_val$classe,predictor_valPC)
+confusionMatrix(data_val$classe, predict(modelTrain, data_valPC))
+```
+The out-of-sample error is 0.025.
+
+## Testing
+
+Using the model, we're now ready to predict the results in the testing data set:
+```{r, echo = TRUE}
+predictor_testPC <- predict(preProc, har_test[,names(har_test)!="problem_id"])
+predResult <- predict(modelTrain, predictor_testPC)
+print(predResult)
+```
+## Making files for submission:
+```{r, echo = TRUE}
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(predResult)
+```
+
+
